@@ -1,6 +1,6 @@
 /* global __dirname */
 
-const NODE_MODULES = '/dev/node.js/node_modules';
+const NODE_MODULES = '../../node_modules';
 const http = require(`http`);
 const url = require(`url`);
 let express = require(`${NODE_MODULES}/express`);
