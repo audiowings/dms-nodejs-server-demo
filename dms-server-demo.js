@@ -216,7 +216,8 @@ assetpresentation – Requested asset presentation. Enum: FULL, PREVIEW
 
 // Get Tidal Track URL Info
 function getTidalTrackUrlInfo (tidalApi, trackId) {
-  const urlUsagemode = "OFFLINE";
+  // const urlUsagemode = "OFFLINE";
+  const urlUsagemode = "STREAM";
   const assetPresentation = "FULL";
   try{
   return new Promise((resolve) => {
