@@ -9,7 +9,7 @@ const fs = require('fs');
 
 let app = express();
 
-const TidalAPI = require('../TidalAPI/client');
+const TidalAPI = require('../TidalAPI-audiowings/client');
 
 const HOSTNAME = '192.168.0.16';
 const PORT = 3000;
