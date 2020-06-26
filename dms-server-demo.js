@@ -1,9 +1,8 @@
 /* global __dirname */
 
-const NODE_MODULES = '../../node_modules';
 const http = require(`http`);
 const url = require(`url`);
-let express = require(`${NODE_MODULES}/express`);
+let express = require(`express`);
 let path = require('path');
 const fs = require('fs');
 

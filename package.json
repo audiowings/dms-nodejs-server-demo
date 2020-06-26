@@ -1,0 +1,11 @@
+{
+  "name": "dms-nodejs-server-demo",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/audiowings/dms-nodejs-server-demo.git",
+  "author": "willpowr",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1"
+  }
+}
