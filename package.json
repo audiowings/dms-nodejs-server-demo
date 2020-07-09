@@ -5,7 +5,13 @@
   "repository": "https://github.com/audiowings/dms-nodejs-server-demo.git",
   "author": "willpowr",
   "license": "MIT",
+  "scripts": {
+    "start" : "node dms-server-demo"
+  },
   "dependencies": {
-    "express": "^4.17.1"
+    "abortcontroller-polyfill": "^1.4.0",
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.0",
+    "request": "^2.88.2"
   }
 }
