@@ -83,7 +83,7 @@ app.use(express.static('../device-web-simulator'))
 // Listen for requests
 let server = app.listen(app.get('port'), function () {
   let port = server.address().port;
-  console.log('Magic happens on port ' + port);
+  console.log(`Weberver started. Connect via http://localhost:${port}`);
 });
 
 app.all('/*', (req, res, next) => {
