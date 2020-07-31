@@ -1,7 +1,7 @@
 'use strict';
 //Node.js modules
 
-const NODE_MODULES = '../../node_modules';
+const NODE_MODULES = '../node_modules';
 const { AbortController, abortableFetch } = require(`${NODE_MODULES}/abortcontroller-polyfill/dist/cjs-ponyfill`);
 const _nodeFetch = require(`${NODE_MODULES}/node-fetch`);
 const { fetch, Request } = abortableFetch({ fetch: _nodeFetch, Request: _nodeFetch.Request });

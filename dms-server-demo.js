@@ -1,7 +1,6 @@
 /* global __dirname */
 
 let express = require(`express`);
-let path = require('path');
 
 let app = express();
 
@@ -81,9 +80,10 @@ app.set('port', PORT);
 app.use(express.static('../device-web-simulator'))
 
 // Listen for requests
-let server = app.listen(app.get('port'), function () {
-  let port = server.address().port;
-  console.log(`Weberver started. Connect via http://localhost:${port}`);
+let server = app.listen(app.get('port'), () => {
+  const host = server.address().address;
+  const port = server.address().port;
+  console.log(`Weberver started. Connect via http://${host}:${port}`);
 });
 
 app.all('/*', (req, res, next) => {
