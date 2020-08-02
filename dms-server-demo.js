@@ -1,3 +1,4 @@
+
 /* global __dirname */
 
 let express = require(`express`);
@@ -6,7 +7,7 @@ let app = express();
 
 const TidalAPI = require('./TidalAPI-audiowings/client');
 
-const HOSTNAME = '192.168.0.16';
+const HOSTNAME = '192.168.1.8';
 const PORT = 3000;
 
 let ProvidersEnum = {
@@ -61,7 +62,7 @@ let users = [
     'deviceId': '40-34-F1-48-48-3F',
     'tidalUsername': 'audiowingsprem',
     'tidalPassword': 'tidalaudiowings',
-  },
+  },  
   {
     'userId': '3',
     'displayname': 'Ian Inactive',
@@ -80,10 +81,8 @@ app.set('port', PORT);
 app.use(express.static('../device-web-simulator'))
 
 // Listen for requests
-let server = app.listen(app.get('port'), () => {
-  const host = server.address().address;
-  const port = server.address().port;
-  console.log(`Weberver started. Connect via http://${host}:${port}`);
+app.listen(app.get('port'), () => {
+  console.log(`Weberver started. Connect via http://${HOSTNAME}:${PORT}`);
 });
 
 app.all('/*', (req, res, next) => {
