@@ -11,7 +11,7 @@ const H_KEY_DEVICEID = 'x-audiowings-deviceid';
 const P_KEY_PLAYLISTID = 'playlistId';
 
 app.get('/', (req, res) => {
-    res.send('Hello from App Engine!');
+    res.send('Hello player');
 });
 
 // Listen to the App Engine-specified port, or 8080 otherwise
