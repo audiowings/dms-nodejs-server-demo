@@ -33,4 +33,4 @@ jobs:
         project_id: ${{ secrets.GCE_PROJECT }}
 
     - run: |-
-        gcloud projects list
+        gcloud compute project-info describe --project aw-dms-demo
