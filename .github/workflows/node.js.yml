@@ -9,6 +9,11 @@ on:
   pull_request:
     branches: [ master ]
 
+env:
+  PROJECT_ID: ${{ secrets.GCE_PROJECT }}
+  GCE_INSTANCE: my-githubactions-vm  # TODO: update to instance name
+  GCE_INSTANCE_ZONE: europe-west2-a   # TODO: update to instance zone
+
 jobs:
   build:
 
@@ -20,10 +25,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
+        # Setup gcloud CLI
+    - uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
       with:
-        node-version: ${{ matrix.node-version }}
-    - run: yarn install --frozen-lockfile
-    - run: yarn build --if-present
-    - run: yarn test
+        version: '290.0.1'
+        service_account_key: ${{ secrets.GCE_SA_KEY }}
+        project_id: ${{ secrets.GCE_PROJECT }}
+
+    - run: |-
+        gcloud projects list
