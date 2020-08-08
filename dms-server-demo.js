@@ -32,7 +32,7 @@ function getUser(deviceId) {
 app.get('/connect/', (req, res) => {
     let deviceId = req.headers[H_KEY_DEVICEID];
     let user = getUser(deviceId);
-    res.json(user);
+    res.json({displayName: user.displayname});
 });
 
 app.get('/playlists/', (req, res) => {
