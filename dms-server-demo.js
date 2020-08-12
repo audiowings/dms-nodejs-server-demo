@@ -6,12 +6,15 @@ const app = express();[[]]
 const TidalAPI = require('./TidalAPI-audiowings/client');
 const { ProvidersEnum } = require("./data/providers");
 const { users } = require("./data/users");
+const {authoriseScopes} = require('./spotify/authoriseScopes')
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
 const P_KEY_PLAYLISTID = 'playlistId';
 
 app.get('/', (req, res) => {
-    res.send('<H1>Audio for your mind and soul</H1>');
+    res.send('<H1>Audio for your mind, body and soul</H1>');
+    const authUrl = 'https://accounts.spotify.com/authorize?client_id=e72425a3bb674afea196d0bf99628a1e&response_type=code&redirect_uri=https://aw-dms-demo.nw.r.appspot.com/&scope=playlist-read-private%20playlist-read-collaborative'
+    authoriseScopes(authUrl)
 });
 
 // Listen to the App Engine-specified port, or 8080 otherwise
