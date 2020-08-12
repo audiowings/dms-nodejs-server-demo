@@ -1,4 +1,4 @@
-const ProvidersEnum = {
+const providers = {
     DEVICE: {
         id: 1,
         providerName: 'Device',
@@ -24,6 +24,6 @@ const ProvidersEnum = {
         providerClientVer: null
     }
 };
-Object.freeze(ProvidersEnum)
+Object.freeze(providers)
 
-exports.ProvidersEnum = ProvidersEnum
+exports.providers = providers

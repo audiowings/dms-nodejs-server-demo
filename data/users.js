@@ -4,14 +4,14 @@
 
 // To be replaced by database
 
-const { ProvidersEnum } = require("./providers");
+const { providers } = require("./providers");
 
 const users = [
     {
         'userId': '1',
         'displayname': 'Harry HiFi',
         'deviceId': 'FF-01-25-79-C7-EC',
-        defaultProvider: ProvidersEnum.TIDAL.providerName,
+        defaultProvider: providers.TIDAL,
         'tidalUsername': 'audiowingshifi',
         'tidalPassword': 'tidalaudiowings',
         'tidalSessionId': null,
@@ -29,6 +29,12 @@ const users = [
         'deviceId': '80-62-E5-FB-9B-C5',
         'tidalUsername': 'audiowingsintro',
         'tidalPassword': 'tidalaudiowings',
+    },
+    {
+        userId: '4',
+        displayname: 'JR Sony Xperia 10+',
+        deviceId: '38-78-62-61-F7-7C',
+        defaultProvider: providers.SPOTIFY
     }
 ]
 
