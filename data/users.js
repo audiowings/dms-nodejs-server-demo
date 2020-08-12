@@ -9,7 +9,7 @@ const { providers } = require("./providers");
 const users = [
     {
         'userId': '1',
-        'displayname': 'Harry HiFi',
+        'displayName': 'Harry HiFi',
         'deviceId': 'FF-01-25-79-C7-EC',
         defaultProvider: providers.TIDAL,
         'tidalUsername': 'audiowingshifi',
@@ -18,21 +18,21 @@ const users = [
     },
     {
         'userId': '2',
-        'displayname': 'Pamela Premium',
+        'displayName': 'Pamela Premium',
         'deviceId': '40-34-F1-48-48-3F',
         'tidalUsername': 'audiowingsprem',
         'tidalPassword': 'tidalaudiowings',
     },
     {
         'userId': '3',
-        'displayname': 'Ian Inactive',
+        'displayName': 'Ian Inactive',
         'deviceId': '80-62-E5-FB-9B-C5',
         'tidalUsername': 'audiowingsintro',
         'tidalPassword': 'tidalaudiowings',
     },
     {
         userId: '4',
-        displayname: 'JR Sony Xperia 10+',
+        displayName: 'JR Sony Xperia 10+',
         deviceId: '6E:4B:9B:AA:70:12',
         defaultProvider: providers.SPOTIFY
     }

@@ -19,7 +19,7 @@ app.listen(PORT, () => {
 });
 
 app.all('/*', (req, res, next) => {
-    console.log('>>> Incoming request url:', req.hostname + req.url);
+    console.log(`>>> Incoming request: ${req.hostname}${req.url} - deviceid: ${req.headers[H_KEY_DEVICEID]}`);
     next();
 });
 
@@ -30,5 +30,5 @@ function getUser(deviceId) {
 app.get('/connect/', (req, res) => {
     let deviceId = req.headers[H_KEY_DEVICEID];
     let user = getUser(deviceId);
-    res.json({displayName: user.displayname});
+    res.json({deviceId: user.deviceId, displayName: user.displayName});
 })
