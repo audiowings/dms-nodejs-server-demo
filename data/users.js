@@ -33,7 +33,7 @@ const users = [
     {
         userId: '4',
         displayname: 'JR Sony Xperia 10+',
-        deviceId: '38-78-62-61-F7-7C',
+        deviceId: '6E:4B:9B:AA:70:12',
         defaultProvider: providers.SPOTIFY
     }
 ]
