@@ -4,10 +4,11 @@ const express = require(`express`);
 const app = express();[[]]
 const Firestore = require('@google-cloud/firestore');
 
-const db = new Firestore({
-    projectId: 'aw-dms-demo',
-    keyFilename: '../aw-dms-demo-sa-key.json',
-});
+const db = new Firestore(
+    {
+        projectId: 'aw-dms-demo',
+    }
+);
 
 async function getUser(deviceId) {
     const usersRef = db.collection('users');
@@ -16,7 +17,7 @@ async function getUser(deviceId) {
         console.log('No matching documents.');
         return;
     }
-    return  snapshot.docs[0].data()
+    return snapshot.docs[0].data()
 }
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
@@ -37,8 +38,6 @@ app.all('/*', (req, res, next) => {
     console.log(`>>> Incoming request: ${req.hostname}${req.url} - deviceid: ${req.headers[H_KEY_DEVICEID]}`);
     next();
 });
-
-
 
 app.get('/connect/', async (req, res) => {
     const deviceId = req.headers[H_KEY_DEVICEID];
