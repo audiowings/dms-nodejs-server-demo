@@ -9,6 +9,7 @@
     "start": "node dms-server-demo"
   },
   "dependencies": {
+    "@google-cloud/firestore": "^4.2.0",
     "abortcontroller-polyfill": "^1.4.0",
     "express": "^4.17.1",
     "node-fetch": "^2.6.0",
