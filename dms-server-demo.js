@@ -11,13 +11,18 @@ const db = new Firestore(
 );
 
 async function getUser(deviceId) {
-    const usersRef = db.collection('users');
-    const snapshot = await usersRef.where('deviceId', '==', deviceId).get();
-    if (snapshot.empty) {
-        console.log('No matching documents.');
-        return;
+    try {
+        const usersRef = db.collection('users');
+        const snapshot = await usersRef.where('deviceId', '==', deviceId).get();
+        if (snapshot.empty) throw `No user found with deviceId: ${deviceId}`
+        const user = snapshot.docs[0].data()
+        console.log(`Matched deviceId: ${deviceId} to user: ${user.displayName}`)
+        return user
+    } catch (expression) {
+        console.log('Error: getUser', expression);
+        return { error: expression }
     }
-    return snapshot.docs[0].data()
+
 }
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
@@ -41,8 +46,6 @@ app.all('/*', (req, res, next) => {
 
 app.get('/connect/', async (req, res) => {
     const deviceId = req.headers[H_KEY_DEVICEID];
-    const user = await getUser(deviceId);
-    console.log('Matched user:', user.displayName);
-
-    res.json({ deviceId: user.deviceId, displayName: user.displayName });
+    const result = await getUser(deviceId);
+    result.error ? res.json(result) : res.json({ deviceId: result.deviceId, displayName: result.displayName });
 })
