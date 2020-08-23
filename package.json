@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "node dms-server-demo",
-    "start:dev": "env GOOGLE_APPLICATION_CREDENTIALS='../aw-dms-demo-sa-key.json' node dms-server-demo"
+    "start:local": "env GOOGLE_APPLICATION_CREDENTIALS='../aw-dms-demo-sa-key.json' node dms-server-demo"
   },
   "dependencies": {
     "@google-cloud/firestore": "^4.2.0",

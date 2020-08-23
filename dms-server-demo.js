@@ -3,12 +3,13 @@
 const express = require(`express`);
 const app = express();[[]]
 const Firestore = require('@google-cloud/firestore');
+const { startSpotifyAuth } = require('./spotify/spotifyClient')
 
 const db = new Firestore(
     {
         projectId: 'aw-dms-demo',
     }
-);
+)
 
 async function getUser(deviceId) {
     try {
@@ -22,15 +23,12 @@ async function getUser(deviceId) {
         console.log('Error: getUser', expression);
         return { error: expression }
     }
-
 }
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
 
 app.get('/', (req, res) => {
     res.send('<H1>Audio for your mind, body and soul</H1>');
-    // const authUrl = 'https://accounts.spotify.com/authorize?client_id=e72425a3bb674afea196d0bf99628a1e&response_type=code&redirect_uri=https://aw-dms-demo.nw.r.appspot.com/&scope=playlist-read-private%20playlist-read-collaborative'
-    // authoriseScopes(authUrl)
 });
 
 // Listen to the App Engine-specified port, or 8080 otherwise
@@ -44,8 +42,27 @@ app.all('/*', (req, res, next) => {
     next();
 });
 
+const sendConnectRes = (res, user) => {
+    try {
+        switch (user.defaultProvider) {
+            case 'spotify':
+                startSpotifyAuth(db, res, user)
+                break
+            default:
+                res.json({
+                    deviceId: user.deviceId,
+                    displayName: user.displayName,
+                    contentProvider: 'Unknown content provider'
+                })
+        }
+    }
+    catch (error) {
+        console.log(error)
+    }
+}
+
 app.get('/connect/', async (req, res) => {
     const deviceId = req.headers[H_KEY_DEVICEID];
-    const result = await getUser(deviceId);
-    result.error ? res.json(result) : res.json({ deviceId: result.deviceId, displayName: result.displayName });
+    const userResult = await getUser(deviceId);
+    userResult.error ? res.json(userResult) : sendConnectRes(res, userResult)
 })
