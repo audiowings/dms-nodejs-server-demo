@@ -3,7 +3,7 @@
 const express = require(`express`);
 const app = express();[[]]
 const Firestore = require('@google-cloud/firestore');
-const { startSpotifyAuth } = require('./spotify/spotifyClient')
+const { sendSpotifyAuthPrompt,spotifyLogin, spotifyCallback } = require('./spotify/spotifyClient')
 
 const db = new Firestore(
     {
@@ -17,6 +17,7 @@ async function getUser(deviceId) {
         const snapshot = await usersRef.where('deviceId', '==', deviceId).get();
         if (snapshot.empty) throw `No user found with deviceId: ${deviceId}`
         const user = snapshot.docs[0].data()
+        user.id = snapshot.docs[0].id
         console.log(`Matched deviceId: ${deviceId} to user: ${user.displayName}`)
         return user
     } catch (expression) {
@@ -32,13 +33,14 @@ app.get('/', (req, res) => {
 });
 
 // Listen to the App Engine-specified port, or 8080 otherwise
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 8080
+const URL =  process.env.npm_package_config_base_url
 app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}...`);
+    console.log(`Server ${process.env.npm_package_config_base_url} listening on port ${PORT}...`);
 });
 
 app.all('/*', (req, res, next) => {
-    console.log(`>>> Incoming request: ${req.hostname}${req.url} - deviceid: ${req.headers[H_KEY_DEVICEID]}`);
+    console.log(`>>> Incoming request: ${req.hostname}${req.url} - ${req.headers[H_KEY_DEVICEID]? ('deviceid: ' + req.headers[H_KEY_DEVICEID]) : ''}`);
     next();
 });
 
@@ -46,7 +48,8 @@ const sendConnectRes = (res, user) => {
     try {
         switch (user.defaultProvider) {
             case 'spotify':
-                startSpotifyAuth(db, res, user)
+                // Instructs user to go to /login page in browser to authenticate spotify account 
+                sendSpotifyAuthPrompt(res, user)
                 break
             default:
                 res.json({
@@ -62,7 +65,18 @@ const sendConnectRes = (res, user) => {
 }
 
 app.get('/connect/', async (req, res) => {
-    const deviceId = req.headers[H_KEY_DEVICEID];
-    const userResult = await getUser(deviceId);
+    const userResult = await getUser(req.headers[H_KEY_DEVICEID]);
     userResult.error ? res.json(userResult) : sendConnectRes(res, userResult)
 })
+
+app.get('/spotifylogin/:userId', async (req, res) => {
+    console.log('userId', req.params.userId)
+    spotifyLogin(res, req.params.userId, db)
+});
+
+app.get('/spotifycallback', (req, res) => {
+    console.log('Code:', req.query.code)
+    spotifyCallback(req, res)
+})
+
+app.get('/refresh_token', function(req, res) {})

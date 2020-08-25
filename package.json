@@ -5,9 +5,12 @@
   "repository": "https://github.com/audiowings/dms-nodejs-server-demo.git",
   "author": "willpowr",
   "license": "MIT",
+  "config": {
+    "base_url": "https://aw-dms-demo.nw.r.appspot.com"
+  },
   "scripts": {
     "start": "node dms-server-demo",
-    "start:local": "env GOOGLE_APPLICATION_CREDENTIALS='../aw-dms-demo-sa-key.json' node dms-server-demo"
+    "start:local": "env GOOGLE_APPLICATION_CREDENTIALS='../aw-dms-demo-sa-key.json' npm_package_config_base_url='http://localhost:8080' node dms-server-demo"
   },
   "dependencies": {
     "@google-cloud/firestore": "^4.2.0",
