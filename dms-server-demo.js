@@ -1,8 +1,10 @@
 /* global __dirname */
 
 const express = require(`express`);
-const app = express();[[]]
 const Firestore = require('@google-cloud/firestore');
+const cors = require('cors');
+const cookieParser = require('cookie-parser');
+
 const { sendSpotifyAuthPrompt,spotifyLogin, spotifyCallback } = require('./spotify/spotifyClient')
 
 const db = new Firestore(
@@ -27,6 +29,11 @@ async function getUser(deviceId) {
 }
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
+
+const app = express()
+app.use(express.static(__dirname + '/public'))
+   .use(cors())
+   .use(cookieParser())
 
 app.get('/', (req, res) => {
     res.send('<H1>Audio for your mind, body and soul</H1>');
@@ -76,7 +83,7 @@ app.get('/spotifylogin/:userId', async (req, res) => {
 
 app.get('/spotifycallback', (req, res) => {
     console.log('Code:', req.query.code)
-    spotifyCallback(req, res)
+    spotifyCallback(req, res, db)
 })
 
 app.get('/refresh_token', function(req, res) {})
