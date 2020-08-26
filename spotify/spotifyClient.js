@@ -64,7 +64,11 @@ exports.sendSpotifyAuthPrompt = async (res, user) => {
 
   res.set('x-spotify-auth-msg', `Visit ${baseUrl}/spotifylogin/${user.id} to access your Spotify content via this device`)
   try {
-    res.json({ user })
+    res.json({
+      deviceId: user.deviceId,
+      displayName: user.displayName,
+      contentProvider: 'spotify'
+  })
   }
   catch (error) {
     console.log('Spotify Error:', error)
