@@ -1,8 +1,12 @@
 
 const request = require('request')
 const querystring = require('querystring')
+const { getUserWithDocId } = require('../user')
+const { getProviderWithDocId } = require('../provider')
+
 
 const baseUrl = process.env.npm_package_config_base_url
+const accessTokenExpirySecs = 3600
 
 /**
  * Generates a random string containing numbers and letters
@@ -24,13 +28,9 @@ const awUserKey = 'aw_user_id';
 
 const getAuthUrl = async (db, userId) => {
   try {
-    const providerRef = db.collection('contentProviders').doc('spotify');
-    const providerDoc = await providerRef.get()
-    const provider = providerDoc.data()
 
-    const userRef = db.collection('users').doc(userId);
-    const userDoc = await userRef.get()
-    const user = userDoc.data()
+    const provider = getProviderWithDocId(db, 'spotify')
+    const user = getUserWithDocId(db, userId)
 
     const authUrl = new URL('https://accounts.spotify.com/authorize')
     authUrl.searchParams.append('client_id', provider.clientId)
@@ -68,7 +68,7 @@ exports.sendSpotifyAuthPrompt = async (res, user) => {
       deviceId: user.deviceId,
       displayName: user.displayName,
       contentProvider: 'spotify'
-  })
+    })
   }
   catch (error) {
     console.log('Spotify Error:', error)
@@ -118,16 +118,18 @@ exports.spotifyCallback = async (req, res, db) => {
 
     // Request tokens
     request.post(authOptions, async (error, response, body) => {
+      console.error('error:', error); // Print the error if one occurred
+      console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
+      console.log('body:', body); // Print the HTML for the Google homepage.
       if (!error && response.statusCode === 200) {
-
         const access_token = body.access_token
         const refresh_token = body.refresh_token
 
         try {
           const userRef = db.collection('users').doc(awUserId);
-          // Set the 'capital' field of the city
+          // Set user token values
           const res = await userRef.update({
-            spotifyAccessToken: access_token,
+            spotifyAccessToken: { "value": access_token, "timestamp": Date.now() },
             spotifyRefreshToken: refresh_token
           })
         }
@@ -168,5 +170,15 @@ exports.spotifyRefresh = (req, res) => {
       });
     }
   });
+}
+
+const needsRefresh = (jsonStringField, expiryTime) => {
+  JSON.parse(jsonStringField).timestamp
+  return Date.now() - timestamp >= (expiryTime * 1000)
+}
+
+
+exports.getSpotifyUserPlaylists = (req, res, user) => {
+  console.log('>> access token needsRefresh', needsRefresh(user.spotifyAccessToken, accessTokenExpirySecs))
 }
 
