@@ -1,7 +1,7 @@
 const test = require('ava');
 const Firestore = require('@google-cloud/firestore');
 
-const { getProviderWithDocId } = require('../provider/provider')
+const { getProviderWithDocId } = require('../../provider/provider')
 
 const db = new Firestore(
     {

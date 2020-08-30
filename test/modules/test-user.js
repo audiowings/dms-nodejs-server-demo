@@ -1,7 +1,7 @@
 const test = require('ava');
 const Firestore = require('@google-cloud/firestore');
 
-const { getUserWithDocId, getUserWithDeviceId } = require('../user/user')
+const { getUserWithDocId, getUserWithDeviceId } = require('../../user/user')
 
 const db = new Firestore({ projectId: 'aw-dms-demo' })
 

@@ -1,7 +1,7 @@
 const test = require('ava');
 const rewire = require('rewire')
 const Firestore = require('@google-cloud/firestore');
-const { getSpotifyUserPlaylists } = require('../spotify/spotifyClient')
+const { getSpotifyUserPlaylists } = require('../../spotify/spotifyClient')
 
 
 const mod = rewire('../spotify/spotifyClient.js');
