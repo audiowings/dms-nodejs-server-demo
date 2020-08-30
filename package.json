@@ -5,15 +5,29 @@
   "repository": "https://github.com/audiowings/dms-nodejs-server-demo.git",
   "author": "willpowr",
   "license": "MIT",
+  "config": {
+    "base_url": "https://aw-dms-demo.nw.r.appspot.com"
+  },
   "scripts": {
     "start": "node dms-server-demo",
-    "start:local": "env GOOGLE_APPLICATION_CREDENTIALS='../aw-dms-demo-sa-key.json' node dms-server-demo"
+    "start:local": "env GOOGLE_APPLICATION_CREDENTIALS='../aw-dms-demo-sa-key.json' npm_package_config_base_url='http://192.168.1.8:8080' node dms-server-demo",
+    "test": "env GOOGLE_APPLICATION_CREDENTIALS='../aw-dms-demo-sa-key.json' npm_package_config_base_url='http://localhost' ava"
   },
   "dependencies": {
     "@google-cloud/firestore": "^4.2.0",
     "abortcontroller-polyfill": "^1.4.0",
+    "axios": "^0.20.0",
+    "cookie-parser": "^1.4.5",
+    "cors": "^2.8.5",
     "express": "^4.17.1",
     "node-fetch": "^2.6.0",
+    "qs": "^6.9.4",
+    "querystring": "^0.2.0",
     "request": "^2.88.2"
+  },
+  "devDependencies": {
+    "ava": "^3.12.1",
+    "rewire": "^5.0.0",
+    "supertest": "^4.0.2"
   }
 }
