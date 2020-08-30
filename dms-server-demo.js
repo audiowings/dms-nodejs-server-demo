@@ -1,17 +1,10 @@
 /* global __dirname */
 
 const express = require(`express`);
-const Firestore = require('@google-cloud/firestore');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { getUserWithDeviceId } = require('./user/user')
-const { sendSpotifyAuthPrompt, spotifyLogin, spotifyCallback, getSpotifyUserPlaylists } = require('./spotify/spotifyClient')
-
-const db = new Firestore(
-    {
-        projectId: 'aw-dms-demo',
-    }
-)
+const { db, getUserWithDeviceId } = require('./database/database')
+const { getSpotifyAuthPromptData, spotifyLogin, spotifyCallback, getSpotifyUserPlaylists } = require('./spotify/spotifyClient')
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
 
@@ -41,7 +34,9 @@ const sendConnectRes = (res, user) => {
         switch (user.defaultProvider) {
             case 'spotify':
                 // Instructs user to go to /login page in browser to authenticate spotify account 
-                sendSpotifyAuthPrompt(res, user)
+                const data = getSpotifyAuthPromptData(user)
+                res.set(data.headers)
+                res.json(data.body)
                 break
             default:
                 res.json({
@@ -56,12 +51,12 @@ const sendConnectRes = (res, user) => {
     }
 }
 
-const getPlaylists = (res, user) => {
+const getPlaylists = async (res, user) => {
     try {
         switch (user.defaultProvider) {
             case 'spotify':
-                // Instructs user to go to /login page in browser to authenticate spotify account 
-                getSpotifyUserPlaylists(res, db, user)
+                const playlists = await getSpotifyUserPlaylists(user)
+                res.json(playlists.data)
                 break
             default:
                 res.json({
@@ -77,21 +72,22 @@ const getPlaylists = (res, user) => {
 }
 
 app.get('/connect/', async (req, res) => {
-    const userResult = await getUserWithDeviceId(db, req.headers[H_KEY_DEVICEID]);
+    const userResult = await getUserWithDeviceId(req.headers[H_KEY_DEVICEID]);
     userResult.error ? res.json(userResult) : sendConnectRes(res, userResult)
 })
 
 app.get('/spotifylogin/:userId', async (req, res) => {
     console.log('userId', req.params.userId)
-    spotifyLogin(res, req.params.userId, db)
+    spotifyLogin(res, req.params.userId)
+    getSpotifyLoginData(req.params.userId)
 });
 
 app.get('/spotifycallback', (req, res) => {
     console.log('Code:', req.query.code)
-    spotifyCallback(req, res, db)
+    spotifyCallback(req, res)
 })
 
 app.get('/playlists/', async (req, res) => {
-    const userResult = await getUserWithDeviceId(db, req.headers[H_KEY_DEVICEID]);
-    userResult.error ? res.json(userResult) : getPlaylists(res, userResult)
+    const userResult = await getUserWithDeviceId(req.headers[H_KEY_DEVICEID]);
+    userResult.error ? res.json(userResult) : await  getPlaylists(res, userResult)
 })

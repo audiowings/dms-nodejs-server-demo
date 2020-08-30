@@ -3,11 +3,9 @@ const test = require('ava');
 const request = require('supertest')
 const app = require('../../dms-server-demo');
 
-
 test.before(async t => {
 	t.context.server = http.createServer(app)
 });
-
 
 test.after.always(t => {
 	t.context.server.close();
