@@ -4,7 +4,7 @@ const express = require(`express`);
 const Firestore = require('@google-cloud/firestore');
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { getUserWithDeviceId } = require('./user')
+const { getUserWithDeviceId } = require('./user/user')
 const { sendSpotifyAuthPrompt, spotifyLogin, spotifyCallback, getSpotifyUserPlaylists } = require('./spotify/spotifyClient')
 
 const db = new Firestore(
@@ -61,7 +61,7 @@ const getPlaylists = (req, res, user) => {
         switch (user.defaultProvider) {
             case 'spotify':
                 // Instructs user to go to /login page in browser to authenticate spotify account 
-                getSpotifyUserPlaylists(req, res, user)
+                getSpotifyUserPlaylists(req, res, db, user)
                 break
             default:
                 res.json({

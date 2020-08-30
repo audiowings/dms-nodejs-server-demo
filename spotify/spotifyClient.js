@@ -1,8 +1,10 @@
 
 const request = require('request')
-const querystring = require('querystring')
-const { getUserWithDocId } = require('../user')
-const { getProviderWithDocId } = require('../provider')
+const axios = require('axios').default;
+const qs = require('qs')
+
+const { getUserWithDocId } = require('../user/user')
+const { getProviderWithDocId } = require('../provider/provider')
 
 
 const baseUrl = process.env.npm_package_config_base_url
@@ -75,6 +77,29 @@ exports.sendSpotifyAuthPrompt = async (res, user) => {
   }
 }
 
+const updateTokens = async (db, awUserId, tokenData) => {
+  try {
+    const userRef = db.collection('users').doc(awUserId);
+    // Set user token values
+
+    await userRef.update({
+      spotifyAccessToken: {
+        "timestamp": Date.now(),
+        "value": tokenData.access_token,
+        "tokenType": tokenData.token_type,
+        "expiresIn": tokenData.expires_in,
+        "scope": tokenData.scope
+      }
+    })
+    tokenData.refresh_token && await userRef.update({
+      spotifyRefreshToken: tokenData.refresh_token
+    })
+  }
+  catch (expression) {
+    console.log('Error updating user tokens:', expression);
+    return { error: expression }
+  }
+}
 
 
 exports.spotifyCallback = async (req, res, db) => {
@@ -92,15 +117,9 @@ exports.spotifyCallback = async (req, res, db) => {
     url.searchParams.append('error', 'state_mismatch')
     res.redirect(url);
   } else {
-    let provider
-    try {
-      const providerRef = db.collection('contentProviders').doc('spotify');
-      const providerDoc = await providerRef.get()
-      provider = providerDoc.data()
-    } catch (expression) {
-      console.log('Error getting provider', expression);
-      return { error: expression }
-    }
+
+    const provider = getProviderWithDocId(db, 'spotify')
+
     res.clearCookie(stateKey);
     res.clearCookie(awUserKey);
     const authOptions = {
@@ -122,25 +141,10 @@ exports.spotifyCallback = async (req, res, db) => {
       console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
       console.log('body:', body); // Print the HTML for the Google homepage.
       if (!error && response.statusCode === 200) {
-        const access_token = body.access_token
-        const refresh_token = body.refresh_token
-
-        try {
-          const userRef = db.collection('users').doc(awUserId);
-          // Set user token values
-          const res = await userRef.update({
-            spotifyAccessToken: { "value": access_token, "timestamp": Date.now() },
-            spotifyRefreshToken: refresh_token
-          })
-        }
-        catch (expression) {
-          console.log('Error updating user tokens:', expression);
-          return { error: expression }
-        }
-
+        updateTokens(db, awUserId, body)
       } else {
         res.redirect(`${baseUrl}/#` +
-          querystring.stringify({
+          qs.stringify({
             error: 'invalid_token'
           }));
       }
@@ -148,37 +152,59 @@ exports.spotifyCallback = async (req, res, db) => {
   }
 }
 
-exports.spotifyRefresh = (req, res) => {
+const spotifyRefresh = async (db, user) => {
+  const provider = await getProviderWithDocId(db, 'spotify')
 
-  // requesting access token from refresh token
-  const refresh_token = req.query.refresh_token;
-  const authOptions = {
-    url: 'https://accounts.spotify.com/api/token',
-    headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
-    form: {
-      grant_type: 'refresh_token',
-      refresh_token: refresh_token
-    },
-    json: true
-  };
-
-  request.post(authOptions, function (error, response, body) {
-    if (!error && response.statusCode === 200) {
-      const access_token = body.access_token;
-      res.send({
-        'access_token': access_token
-      });
+  //Get refresh token from db
+  //Create and send refresh token request
+  try {
+    const url = 'https://accounts.spotify.com/api/token'
+    const options = {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + provider.encodedAuth
+      },
+      data: qs.stringify({
+        'grant_type': 'refresh_token',
+        'refresh_token': user.spotifyRefreshToken
+      })
     }
-  });
+    return await axios(url, options);
+  } catch (error) {
+    console.error('Error:', error);
+  }
+  // requesting access token from refresh token
 }
 
-const needsRefresh = (jsonStringField, expiryTime) => {
-  JSON.parse(jsonStringField).timestamp
+const needsRefresh = (timestamp, expiryTime) => {
   return Date.now() - timestamp >= (expiryTime * 1000)
 }
 
+exports.getSpotifyUserPlaylists = async (req, res, db, user) => {
+  const tokenNeedsRefresh = needsRefresh(JSON.parse(user.spotifyAccessToken).timestamp, accessTokenExpirySecs)
+  let response
+  if(tokenNeedsRefresh) {
+    response = spotifyRefresh(db, user)
+    user.spotifyAccessToken = response.access_token
+  }
 
-exports.getSpotifyUserPlaylists = (req, res, user) => {
-  console.log('>> access token needsRefresh', needsRefresh(user.spotifyAccessToken, accessTokenExpirySecs))
+  try {
+    const url = 'https://api.spotify.com/v1/me/playlists'
+    const options = {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Basic ' + provider.encodedAuth
+      },
+      data: qs.stringify({
+        'grant_type': 'refresh_token',
+        'refresh_token': user.spotifyRefreshToken
+      })
+    }
+    return await axios(url, options);
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
