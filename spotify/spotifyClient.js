@@ -69,6 +69,7 @@ exports.sendSpotifyAuthPrompt = async (res, user) => {
     res.json({
       deviceId: user.deviceId,
       displayName: user.displayName,
+      userId: user.id,
       contentProvider: 'spotify'
     })
   }
@@ -82,17 +83,18 @@ const updateTokens = async (db, awUserId, tokenData) => {
     const userRef = db.collection('users').doc(awUserId);
     // Set user token values
 
-    await userRef.update({
-      spotifyAccessToken: {
-        "timestamp": Date.now(),
-        "value": tokenData.access_token,
-        "tokenType": tokenData.token_type,
-        "expiresIn": tokenData.expires_in,
-        "scope": tokenData.scope
-      }
-    })
     tokenData.refresh_token && await userRef.update({
       spotifyRefreshToken: tokenData.refresh_token
+    })
+    const spotifyAccessToken = {
+      "timestamp": Date.now(),
+      "value": tokenData.access_token,
+      "tokenType": tokenData.token_type,
+      "expiresIn": tokenData.expires_in,
+      "scope": tokenData.scope
+    }
+    return await userRef.update({
+      spotifyAccessToken: spotifyAccessToken
     })
   }
   catch (expression) {
@@ -177,16 +179,20 @@ const spotifyRefresh = async (db, user) => {
   // requesting access token from refresh token
 }
 
-const needsRefresh = (timestamp, expiryTime) => {
-  return Date.now() - timestamp >= (expiryTime * 1000)
+const needsRefresh = (accessToken) => {
+  
+
+  return Date.now() - accessToken.timestamp >= (accessToken.expiresIn * 1000)
 }
 
-exports.getSpotifyUserPlaylists = async (req, res, db, user) => {
-  const tokenNeedsRefresh = needsRefresh(JSON.parse(user.spotifyAccessToken).timestamp, accessTokenExpirySecs)
-  let response
-  if(tokenNeedsRefresh) {
-    response = spotifyRefresh(db, user)
-    user.spotifyAccessToken = response.access_token
+exports.getSpotifyUserPlaylists = async (res, db, user) => {
+  const tokenNeedsRefresh = needsRefresh(user.spotifyAccessToken)
+  let accessToken = user.spotifyAccessToken.value
+
+  if (tokenNeedsRefresh) {
+    const response = await spotifyRefresh(db, user)
+    accessToken = response.data.access_token
+    await updateTokens(db, user.id, response.data)
   }
 
   try {
@@ -195,16 +201,13 @@ exports.getSpotifyUserPlaylists = async (req, res, db, user) => {
       method: 'GET',
       headers: {
         'content-type': 'application/x-www-form-urlencoded',
-        'Authorization': 'Basic ' + provider.encodedAuth
-      },
-      data: qs.stringify({
-        'grant_type': 'refresh_token',
-        'refresh_token': user.spotifyRefreshToken
-      })
+        'Authorization': 'Bearer ' + accessToken
+      }
     }
-    return await axios(url, options);
+    const playlistsResponse = await axios(url, options)
+    res.json(playlistsResponse.data)
+    return playlistsResponse
   } catch (error) {
-    console.error('Error:', error);
+    console.error('Error /me/playlists:', error)
   }
 }
-

@@ -56,12 +56,12 @@ const sendConnectRes = (res, user) => {
     }
 }
 
-const getPlaylists = (req, res, user) => {
+const getPlaylists = (res, user) => {
     try {
         switch (user.defaultProvider) {
             case 'spotify':
                 // Instructs user to go to /login page in browser to authenticate spotify account 
-                getSpotifyUserPlaylists(req, res, db, user)
+                getSpotifyUserPlaylists(res, db, user)
                 break
             default:
                 res.json({
@@ -93,5 +93,5 @@ app.get('/spotifycallback', (req, res) => {
 
 app.get('/playlists/', async (req, res) => {
     const userResult = await getUserWithDeviceId(db, req.headers[H_KEY_DEVICEID]);
-    userResult.error ? res.json(userResult) : getPlaylists(req, res, userResult)
+    userResult.error ? res.json(userResult) : getPlaylists(res, userResult)
 })
