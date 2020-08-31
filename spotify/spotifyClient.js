@@ -164,12 +164,7 @@ exports.spotifyCallback = async (req, res) => {
 }
 
 const spotifyRefresh = async (user) => {
-  console.log('Refreshing access token for user...', user.id)
-
   const provider = await getProviderWithDocId('spotify')
-
-  console.log('Refreshing access token for user...', user.id)
-  console.log('Refreshing access token for provider...', provider.encodedAuth)
 
   //Get refresh token from db
   //Create and send refresh token request
@@ -220,6 +215,6 @@ exports.getSpotifyUserPlaylists = async (user) => {
     const playlistsResponse = await axios(url, options)
     return playlistsResponse
   } catch (error) {
-    console.error('Error /me/playlists:', error)
+    console.error('Error /me/playlists:', error.request.res.headers)
   }
 }

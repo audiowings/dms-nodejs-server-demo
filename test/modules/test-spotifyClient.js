@@ -24,24 +24,30 @@ const user = {
 }
 
 test.serial('Token Needs Refresh', async t => {
-    user.spotifyAccessToken.timestamp = 1598512936776
-    const tokenNeedsRefresh = needsRefresh(user.spotifyAccessToken)
+    // Using deep copy to ensure all values are immutable (https://www.javascripttutorial.net/object/3-ways-to-copy-objects-in-javascript/)
+    const testUser = JSON.parse(JSON.stringify(user));
+
+    testUser.spotifyAccessToken.timestamp = 1598512936776
+    const tokenNeedsRefresh = needsRefresh(testUser.spotifyAccessToken)
     t.is(tokenNeedsRefresh, true);
 });
 
 test.serial('Token Does Not Need Refresh', async t => {
-    user.spotifyAccessToken.timestamp = Date.now()
-    const tokenNeedsRefresh = needsRefresh(user.spotifyAccessToken)
+    const testUser = JSON.parse(JSON.stringify(user));
+    testUser.spotifyAccessToken.timestamp = Date.now()
+    const tokenNeedsRefresh = needsRefresh(testUser.spotifyAccessToken)
     t.is(tokenNeedsRefresh, false);
 });
 
 test.serial('Refresh access token', async t => {
-    const response = await spotifyRefresh(user)
+    const testUser = JSON.parse(JSON.stringify(user));
+    const response = await spotifyRefresh(testUser)
     t.is(response.status, 200);
 })
 
 test.serial('Get Spotify User Playlists', async t => {
-    const response = await getSpotifyUserPlaylists(user)
+    const testUser = JSON.parse(JSON.stringify(user));
+    const response = await getSpotifyUserPlaylists(testUser)
     t.is(response.status, 200);
     t.assert(response.data.total > 0);
 });
