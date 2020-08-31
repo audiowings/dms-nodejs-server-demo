@@ -3,7 +3,7 @@
 const express = require(`express`);
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
-const { db, getUserWithDeviceId } = require('./database/database')
+const { getUserWithDeviceId } = require('./database/database')
 const { getSpotifyAuthPromptData, spotifyLogin, spotifyCallback, getSpotifyUserPlaylists } = require('./spotify/spotifyClient')
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 const PORT = process.env.PORT || 8080
 const URL = process.env.npm_package_config_base_url
 app.listen(PORT, () => {
-    console.log(`Server ${process.env.npm_package_config_base_url} listening on port ${PORT}...`);
+    console.log(`Server ${URL} listening on port ${PORT}...`);
 });
 
 app.all('/*', (req, res, next) => {
