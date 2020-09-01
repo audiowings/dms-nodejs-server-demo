@@ -3,12 +3,9 @@ const request = require('request')
 const axios = require('axios').default;
 const qs = require('qs')
 
-const { getUserWithDocId } = require('../user/user')
-const { getProviderWithDocId } = require('../provider/provider')
-
+const { db, getUserWithDocId, getProviderWithDocId } = require('../database/database')
 
 const baseUrl = process.env.npm_package_config_base_url
-const accessTokenExpirySecs = 3600
 
 /**
  * Generates a random string containing numbers and letters
@@ -28,11 +25,11 @@ const generateRandomString = function (length) {
 const stateKey = 'spotify_auth_state';
 const awUserKey = 'aw_user_id';
 
-const getAuthUrl = async (db, userId) => {
+const getAuthUrl = async (userId) => {
   try {
 
-    const provider = getProviderWithDocId(db, 'spotify')
-    const user = getUserWithDocId(db, userId)
+    const provider = await getProviderWithDocId('spotify')
+    const user = await getUserWithDocId(userId)
 
     const authUrl = new URL('https://accounts.spotify.com/authorize')
     authUrl.searchParams.append('client_id', provider.clientId)
@@ -40,9 +37,6 @@ const getAuthUrl = async (db, userId) => {
     authUrl.searchParams.append('redirect_uri', `${baseUrl}${provider.redirectUriPath}`)
     authUrl.searchParams.append('scope', provider.scope)
     authUrl.searchParams.append('deviceId', user.deviceId)
-
-    console.log(`authUrl:`, authUrl.toString())
-
     return authUrl
   } catch (expression) {
     console.log('Error: getAuthUrl', expression);
@@ -50,8 +44,23 @@ const getAuthUrl = async (db, userId) => {
   }
 }
 
-exports.spotifyLogin = async (res, userId, db) => {
-  const authUrl = await getAuthUrl(db, userId)
+exports.getSpotifyAuthPromptData = (user) => {
+
+  const headers = {
+    'x-spotify-auth-msg': `Visit ${baseUrl}/spotifylogin/${user.id} in a browser to allow this device to access your Spotify account`
+  }
+
+  const body = {
+    deviceId: user.deviceId,
+    displayName: user.displayName,
+    userId: user.id,
+    contentProvider: 'spotify'
+  }
+  return { headers: headers, body: body }
+}
+
+exports.spotifyLogin = async (res, userId) => {
+  const authUrl = await getAuthUrl(userId)
   const state = generateRandomString(16);
   res.cookie(stateKey, state);
   res.cookie(awUserKey, userId);
@@ -61,24 +70,21 @@ exports.spotifyLogin = async (res, userId, db) => {
   res.redirect(authUrl);
 }
 
+exports.getSpotifyLoginData = async (userId) => {
 
-exports.sendSpotifyAuthPrompt = async (res, user) => {
+  const authUrl = await getAuthUrl(db, userId)
+  const state = generateRandomString(16);
 
-  res.set('x-spotify-auth-msg', `Visit ${baseUrl}/spotifylogin/${user.id} to access your Spotify content via this device`)
-  try {
-    res.json({
-      deviceId: user.deviceId,
-      displayName: user.displayName,
-      userId: user.id,
-      contentProvider: 'spotify'
-    })
-  }
-  catch (error) {
-    console.log('Spotify Error:', error)
-  }
+  authUrl.searchParams.append('state', state)
+
+  const cookieData = {}
+  cookieData[stateKey] = state
+  cookieData[awUserKey] = userId
+
+  return { authUrl: authUrl, cookies: cookieData }
 }
 
-const updateTokens = async (db, awUserId, tokenData) => {
+const updateTokens = async (awUserId, tokenData) => {
   try {
     const userRef = db.collection('users').doc(awUserId);
     // Set user token values
@@ -104,7 +110,7 @@ const updateTokens = async (db, awUserId, tokenData) => {
 }
 
 
-exports.spotifyCallback = async (req, res, db) => {
+exports.spotifyCallback = async (req, res) => {
 
   // your application requests refresh and access tokens
   // after checking the state parameter
@@ -120,7 +126,7 @@ exports.spotifyCallback = async (req, res, db) => {
     res.redirect(url);
   } else {
 
-    const provider = getProviderWithDocId(db, 'spotify')
+    const provider = await getProviderWithDocId('spotify')
 
     res.clearCookie(stateKey);
     res.clearCookie(awUserKey);
@@ -143,7 +149,7 @@ exports.spotifyCallback = async (req, res, db) => {
       console.log('statusCode:', response && response.statusCode); // Print the response status code if a response was received
       console.log('body:', body); // Print the HTML for the Google homepage.
       if (!error && response.statusCode === 200) {
-        updateTokens(db, awUserId, body)
+        updateTokens(awUserId, body)
       } else {
         res.redirect(`${baseUrl}/#` +
           qs.stringify({
@@ -154,8 +160,8 @@ exports.spotifyCallback = async (req, res, db) => {
   }
 }
 
-const spotifyRefresh = async (db, user) => {
-  const provider = await getProviderWithDocId(db, 'spotify')
+const spotifyRefresh = async (user) => {
+  const provider = await getProviderWithDocId('spotify')
 
   //Get refresh token from db
   //Create and send refresh token request
@@ -172,27 +178,24 @@ const spotifyRefresh = async (db, user) => {
         'refresh_token': user.spotifyRefreshToken
       })
     }
-    return await axios(url, options);
+    const resp = await axios(url, options)
+    return resp
   } catch (error) {
     console.error('Error:', error);
   }
-  // requesting access token from refresh token
 }
 
 const needsRefresh = (accessToken) => {
-  
-
   return Date.now() - accessToken.timestamp >= (accessToken.expiresIn * 1000)
 }
 
-exports.getSpotifyUserPlaylists = async (res, db, user) => {
-  const tokenNeedsRefresh = needsRefresh(user.spotifyAccessToken)
+exports.getSpotifyUserPlaylists = async (user) => {
   let accessToken = user.spotifyAccessToken.value
 
-  if (tokenNeedsRefresh) {
-    const response = await spotifyRefresh(db, user)
+  if (needsRefresh(user.spotifyAccessToken)) {
+    const response = await spotifyRefresh(user)
     accessToken = response.data.access_token
-    await updateTokens(db, user.id, response.data)
+    await updateTokens(user.id, response.data)
   }
 
   try {
@@ -204,10 +207,10 @@ exports.getSpotifyUserPlaylists = async (res, db, user) => {
         'Authorization': 'Bearer ' + accessToken
       }
     }
+
     const playlistsResponse = await axios(url, options)
-    res.json(playlistsResponse.data)
     return playlistsResponse
   } catch (error) {
-    console.error('Error /me/playlists:', error)
+    console.error('Error /me/playlists:', error.request.res.headers)
   }
 }
