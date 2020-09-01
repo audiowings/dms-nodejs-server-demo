@@ -28,8 +28,8 @@ const awUserKey = 'aw_user_id';
 const getAuthUrl = async (userId) => {
   try {
 
-    const provider = getProviderWithDocId('spotify')
-    const user = getUserWithDocId(userId)
+    const provider = await getProviderWithDocId('spotify')
+    const user = await getUserWithDocId(userId)
 
     const authUrl = new URL('https://accounts.spotify.com/authorize')
     authUrl.searchParams.append('client_id', provider.clientId)
@@ -37,9 +37,6 @@ const getAuthUrl = async (userId) => {
     authUrl.searchParams.append('redirect_uri', `${baseUrl}${provider.redirectUriPath}`)
     authUrl.searchParams.append('scope', provider.scope)
     authUrl.searchParams.append('deviceId', user.deviceId)
-
-    console.log(`authUrl:`, authUrl.toString())
-
     return authUrl
   } catch (expression) {
     console.log('Error: getAuthUrl', expression);
@@ -63,7 +60,7 @@ exports.getSpotifyAuthPromptData = (user) => {
 }
 
 exports.spotifyLogin = async (res, userId) => {
-  const authUrl = await getAuthUrl(db, userId)
+  const authUrl = await getAuthUrl(userId)
   const state = generateRandomString(16);
   res.cookie(stateKey, state);
   res.cookie(awUserKey, userId);
@@ -129,7 +126,7 @@ exports.spotifyCallback = async (req, res) => {
     res.redirect(url);
   } else {
 
-    const provider = getProviderWithDocId('spotify')
+    const provider = await getProviderWithDocId('spotify')
 
     res.clearCookie(stateKey);
     res.clearCookie(awUserKey);
@@ -182,7 +179,6 @@ const spotifyRefresh = async (user) => {
       })
     }
     const resp = await axios(url, options)
-    console.log('resp', resp.data)
     return resp
   } catch (error) {
     console.error('Error:', error);

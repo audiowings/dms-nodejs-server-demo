@@ -79,8 +79,7 @@ app.get('/connect/', async (req, res) => {
 app.get('/spotifylogin/:userId', async (req, res) => {
     console.log('userId', req.params.userId)
     spotifyLogin(res, req.params.userId)
-    getSpotifyLoginData(req.params.userId)
-});
+})
 
 app.get('/spotifycallback', (req, res) => {
     console.log('Code:', req.query.code)
