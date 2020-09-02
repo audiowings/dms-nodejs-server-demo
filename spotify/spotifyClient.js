@@ -214,3 +214,33 @@ exports.getSpotifyUserPlaylists = async (user) => {
     console.error('Error /me/playlists:', error.request.res.headers)
   }
 }
+
+
+exports.getSpotifyUserPlaylist = async (user, playlistUrl) => {
+  let accessToken = user.spotifyAccessToken.value
+
+  if (needsRefresh(user.spotifyAccessToken)) {
+    const response = await spotifyRefresh(user)
+    accessToken = response.data.access_token
+    await updateTokens(user.id, response.data)
+  }
+
+  try {
+    const url = playlistUrl
+    const options = {
+      method: 'GET',
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded',
+        'Authorization': 'Bearer ' + accessToken
+      },
+      params: {
+        fields: 'items(track(name,href,album(name,href))),total'
+      }
+    }
+
+    const playlistsResponse = await axios(url, options)
+    return playlistsResponse
+  } catch (error) {
+    console.error('Error /me/playlists:', error.request.res.headers)
+  }
+}

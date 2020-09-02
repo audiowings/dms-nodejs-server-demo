@@ -4,9 +4,10 @@ const express = require(`express`);
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const { getUserWithDeviceId } = require('./database/database')
-const { getSpotifyAuthPromptData, spotifyLogin, spotifyCallback, getSpotifyUserPlaylists } = require('./spotify/spotifyClient')
+const { getSpotifyAuthPromptData, spotifyLogin, spotifyCallback, getSpotifyUserPlaylists, getSpotifyUserPlaylist } = require('./spotify/spotifyClient')
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
+const H_KEY_PLAYLIST_URL = 'x-audiowings-playlist_url';
 
 const app = express()
 app.use(express.static(__dirname + '/public'))
@@ -60,9 +61,7 @@ const getPlaylists = async (res, user) => {
                 break
             default:
                 res.json({
-                    deviceId: user.deviceId,
-                    displayName: user.displayName,
-                    contentProvider: 'Unknown content provider'
+                    Message: 'No playlists'
                 })
         }
     }
@@ -70,6 +69,25 @@ const getPlaylists = async (res, user) => {
         console.log(error)
     }
 }
+
+const getPlaylist = async (res, user, playlistUrl) => {
+    try {
+        switch (user.defaultProvider) {
+            case 'spotify':
+                const playlist = await getSpotifyUserPlaylist(user, playlistUrl)
+                res.json(playlist.data)
+                break
+            default:
+                res.json({
+                    Message: 'No playlist'
+                })
+        }
+    }
+    catch (error) {
+        console.log(error)
+    }
+}
+
 
 app.get('/connect/', async (req, res) => {
     const userResult = await getUserWithDeviceId(req.headers[H_KEY_DEVICEID]);
@@ -89,4 +107,10 @@ app.get('/spotifycallback', (req, res) => {
 app.get('/playlists/', async (req, res) => {
     const userResult = await getUserWithDeviceId(req.headers[H_KEY_DEVICEID]);
     userResult.error ? res.json(userResult) : await  getPlaylists(res, userResult)
+})
+
+app.get('/playlist/', async (req, res) => {
+    const userResult = await getUserWithDeviceId(req.headers[H_KEY_DEVICEID]);
+    const playlistUrl =req.headers[H_KEY_PLAYLIST_URL]
+    userResult.error ? res.json(userResult) : await  getPlaylist(res, userResult, playlistUrl)
 })
