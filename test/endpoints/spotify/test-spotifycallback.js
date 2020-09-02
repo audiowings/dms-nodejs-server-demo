@@ -1,7 +1,7 @@
 const http = require('http');
 const test = require('ava');
 const request = require('supertest')
-const { getServer } = require('../utils/server')
+const { getServer } = require('../../utils/server')
 const baseUrl = process.env.npm_package_config_base_url
 
 test.before(async t => {

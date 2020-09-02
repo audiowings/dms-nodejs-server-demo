@@ -13,11 +13,12 @@ test.after.always(t => {
 	t.context.server.close();
 });
 
-test.serial('Test /playlists', async t => {
+test.serial('Test /playlist', async t => {
 	const res = await request(t.context.prefixUrl)
-		.get('/playlists')
+		.get('/playlist')
 		.set('x-audiowings-deviceid', 'DE:6C:5D:45:11:DD')
-	// console.log(res.body)
-	t.is(res.status, 200);
+		.set('x-audiowings-playlist_url', 'https://api.spotify.com/v1/playlists/1Z2tO3csO2ZB2FcEszUcgr/tracks')
+	// console.log(JSON.stringify(res.body, null, 4))
+	t.is(res.status, 200)
 	t.assert(res.body.total > 0)
-});
+})
