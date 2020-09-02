@@ -1,6 +1,6 @@
 const test = require('ava');
 const rewire = require('rewire')
-const { getSpotifyUserPlaylists } = require('../../spotify/spotifyClient')
+const { getSpotifyUserPlaylists, getSpotifyUserPlaylist } = require('../../spotify/spotifyClient')
 
 const baseUrl = process.env.npm_package_config_base_url
 
@@ -32,8 +32,8 @@ test.serial('Get Auth URL', async t => {
     const testUser = getTestUser()
     testUser.spotifyAccessToken.timestamp = 1598512936776
     const authUrl = await getAuthUrl(testUser.id)
-    console.log(`authUrl:`, authUrl.toJSON())
-    console.log(`qs:`, authUrl.searchParams.get('redirect_uri'))
+    // console.log(`authUrl:`, authUrl.toJSON())
+    // console.log(`qs:`, authUrl.searchParams.get('redirect_uri'))
     t.is(authUrl.host, 'accounts.spotify.com')
     t.is(authUrl.searchParams.get('redirect_uri'), `${baseUrl}/spotifycallback`)
 });
@@ -62,8 +62,18 @@ test.serial('Refresh access token', async t => {
 test.serial('Get Spotify User Playlists', async t => {
     const testUser = getTestUser()
     const response = await getSpotifyUserPlaylists(testUser)
-    t.is(response.status, 200);
-    t.assert(response.data.total > 0);
+    t.is(response.status, 200)
+    t.assert(response.data.total > 0)
+})
+
+
+test.serial('Get Spotify User Playlist', async t => {
+    const testUser = getTestUser()
+    const playlistUrl = 'https://api.spotify.com/v1/playlists/1Z2tO3csO2ZB2FcEszUcgr/tracks'
+    const response = await getSpotifyUserPlaylist(testUser, playlistUrl)
+    // console.log(JSON.stringify(response.data, null, 4))
+    t.is(response.status, 200)
+    t.assert(response.data.total > 0)
 });
 
 
