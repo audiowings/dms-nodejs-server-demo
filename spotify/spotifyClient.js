@@ -234,7 +234,7 @@ exports.getSpotifyUserPlaylist = async (user, playlistUrl) => {
         'Authorization': 'Bearer ' + accessToken
       },
       params: {
-        fields: 'items(track(name,href,album(name,href))),total'
+        fields: 'items(track(name,href,external_urls,preview_url,artists(name),album(name))),total'
       }
     }
 
