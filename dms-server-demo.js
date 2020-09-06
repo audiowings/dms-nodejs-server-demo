@@ -31,21 +31,25 @@ app.all('/*', (req, res, next) => {
 });
 
 const sendConnectRes = (res, user) => {
+    const body = {
+        deviceId: user.deviceId,
+        displayName: user.displayName,
+        userId: user.id,
+    }
     try {
         switch (user.defaultProvider) {
             case 'spotify':
                 // Instructs user to go to /login page in browser to authenticate spotify account 
-                const data = getSpotifyAuthPromptData(user)
-                res.set(data.headers)
-                res.json(data.body)
+                if (user.spotifyRefreshToken === "undefined") {
+                    const data = getSpotifyAuthPromptData(user)
+                    res.set(data.headers)
+                }
+                body.contentProvider = 'spotify'
                 break
             default:
-                res.json({
-                    deviceId: user.deviceId,
-                    displayName: user.displayName,
-                    contentProvider: 'Unknown content provider'
-                })
+                body.contentProvider = 'Unknown content provider'
         }
+        res.json(body)
     }
     catch (error) {
         console.log(error)
@@ -106,11 +110,11 @@ app.get('/spotifycallback', (req, res) => {
 
 app.get('/playlists/', async (req, res) => {
     const userResult = await getUserWithDeviceId(req.headers[H_KEY_DEVICEID]);
-    userResult.error ? res.json(userResult) : await  getPlaylists(res, userResult)
+    userResult.error ? res.json(userResult) : await getPlaylists(res, userResult)
 })
 
 app.get('/playlist/', async (req, res) => {
     const userResult = await getUserWithDeviceId(req.headers[H_KEY_DEVICEID]);
-    const playlistUrl =req.headers[H_KEY_PLAYLIST_URL]
-    userResult.error ? res.json(userResult) : await  getPlaylist(res, userResult, playlistUrl)
+    const playlistUrl = req.headers[H_KEY_PLAYLIST_URL]
+    userResult.error ? res.json(userResult) : await getPlaylist(res, userResult, playlistUrl)
 })

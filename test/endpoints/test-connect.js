@@ -17,6 +17,7 @@ test.serial('Test /connect', async t => {
 	const res = await request(t.context.prefixUrl)
 		.get('/connect')
 		.set('x-audiowings-deviceid', 'DE:6C:5D:45:11:DD')
+	// console.log('HEADERSD', res)
 	t.is(res.status, 200);
 	t.is(res.body.displayName, 'Dev User')
 });

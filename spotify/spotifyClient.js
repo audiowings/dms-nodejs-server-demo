@@ -49,14 +49,7 @@ exports.getSpotifyAuthPromptData = (user) => {
   const headers = {
     'x-spotify-auth-msg': `Visit ${baseUrl}/spotifylogin/${user.id} in a browser to allow this device to access your Spotify account`
   }
-
-  const body = {
-    deviceId: user.deviceId,
-    displayName: user.displayName,
-    userId: user.id,
-    contentProvider: 'spotify'
-  }
-  return { headers: headers, body: body }
+  return { headers: headers}
 }
 
 exports.spotifyLogin = async (res, userId) => {
@@ -238,9 +231,9 @@ exports.getSpotifyUserPlaylist = async (user, playlistUrl) => {
       }
     }
 
-    const playlistsResponse = await axios(url, options)
-    return playlistsResponse
+    const playlistResponse = await axios(url, options)
+    return playlistResponse
   } catch (error) {
-    console.error('Error /me/playlists:', error.request.res.headers)
+    console.error('Error /me/playlist:', error.request.res.headers)
   }
 }
