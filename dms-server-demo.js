@@ -26,7 +26,7 @@ app.listen(PORT, () => {
 });
 
 app.all('/*', (req, res, next) => {
-    console.log(`>>> Incoming request: ${req.hostname}${req.url} - ${req.headers[H_KEY_DEVICEID] ? ('deviceid: ' + req.headers[H_KEY_DEVICEID]) : ''}`);
+    console.log(`>>> Incoming request: ${req.hostname}${req.url} - ${JSON.stringify(req.headers)}`);
     next();
 });
 
