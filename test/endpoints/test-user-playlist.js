@@ -4,11 +4,9 @@ const request = require('supertest')
 const { getServer } = require('../utils/server')
 
 test.before(async t => {
-	const server = 'https://aw-dms-demo.nw.r.appspot.com' //await getServer()
-	// const server = await getServer()
+	const server = await getServer()
 	t.context.server = http.createServer(server.app)
-	t.context.prefixUrl = 'https://aw-dms-demo.nw.r.appspot.com'
-	// t.context.prefixUrl = `${server.baseUrl}:${server.port}`
+	t.context.prefixUrl = `${server.baseUrl}:${server.port}`
 })
 
 test.after.always(t => {
