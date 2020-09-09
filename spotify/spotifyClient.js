@@ -234,6 +234,6 @@ exports.getSpotifyUserPlaylist = async (user, playlistUrl) => {
     const playlistResponse = await axios(url, options)
     return playlistResponse
   } catch (error) {
-    console.error('Error /me/playlist:', error.request.res.headers)
+    console.error('Error /me/playlist:', error)
   }
 }
