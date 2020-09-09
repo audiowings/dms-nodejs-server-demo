@@ -7,7 +7,7 @@ const { getUserWithDeviceId } = require('./database/database')
 const { getSpotifyAuthPromptData, spotifyLogin, spotifyCallback, getSpotifyUserPlaylists, getSpotifyUserPlaylist } = require('./spotify/spotifyClient')
 
 const H_KEY_DEVICEID = 'x-audiowings-deviceid';
-const H_KEY_PLAYLIST_URL = 'x-audiowings-playlist_url';
+const H_KEY_PLAYLIST_URL = 'x-audiowings-playlist-url';
 
 const app = express()
 app.use(express.static(__dirname + '/public'))
@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 8080
 const URL = process.env.npm_package_config_base_url
 app.listen(PORT, () => {
     console.log(`Server ${URL} listening on port ${PORT}...`);
-});
+})
 
 app.all('/*', (req, res, next) => {
     console.log(`>>> Incoming request: ${req.hostname}${req.url} - ${JSON.stringify(req.headers)}`);
